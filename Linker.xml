@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<linker>
+    <assembly fullname="StandaloneBlazorApp" />
+    <assembly fullname="Mono.WebAssembly.Interop" />
+
+<!--
+  If all this were to be automated, we'd need some new linker rules:
+  
+  * DI awareness (for any impl type used with IServiceCollection.Add*, don't remove any of its constructors)
+  * Don't strip any method with [JSInvokable]
+  * S.T.J awareness
+    - For any type used with deserialization, keep all its property setters
+    - For any type used with serialization, keep all its property getters
+      (or as an approximation, never remove any getter if you're not also removing the setter)
+  * For anything that implements IComponent,
+    - Don't remove its default constructor
+    - Don't remove the declaration that it implements IComponent (same with IHandleEvent, etc.)
+  * Don't remove any property with [Parameter]
+  * Special cases
+    - Preserve Microsoft.AspNetCore.Components.Reflection*  
+-->
+
+    <assembly fullname="Microsoft.AspNetCore.Blazor">
+        <!-- Constructors for DI -->
+        <type fullname="Microsoft.AspNetCore.Blazor.Hosting.WebAssemblyHost" />
+        <type fullname="Microsoft.AspNetCore.Blazor.Services.WebAssemblyLoggerFactory" />
+        <type fullname="Microsoft.AspNetCore.Blazor.Services.WebAssemblyComponentContext" />
+
+        <!-- JS-invokable method -->
+        <type fullname="Microsoft.AspNetCore.Blazor.Services.WebAssemblyUriHelper" />
+
+        <!-- DTO types to be JSON serialized for JS interop with 'fetch', so don't remove getters -->
+        <type fullname="Microsoft.AspNetCore.Blazor.Http.WebAssemblyHttpMessageHandler*" /> -->
+    </assembly>
+
+    <assembly fullname="Microsoft.AspNetCore.Components">
+        <!-- Constructors for Blazor component factory -->
+        <type fullname="Microsoft.AspNetCore.Components.Routing.Router" />
+
+        <!-- Don't remove the IComponent interface -->
+        <type fullname="Microsoft.AspNetCore.Components.PageDisplay" />
+
+        <!-- Don't remove the setter for LayoutComponentBase.Body -->
+        <type fullname="Microsoft.AspNetCore.Components.LayoutComponentBase" />
+
+        <!-- Reflection helpers -->
+        <type fullname="Microsoft.AspNetCore.Components.Reflection*" />
+    </assembly>
+
+    <assembly fullname="Microsoft.AspNetCore.Components.Web">
+        <!-- Constructors for Blazor component factory -->
+        <type fullname="Microsoft.AspNetCore.Components.Routing.NavLink" />
+
+        <!-- Default constructor for JSON deserialization -->
+        <type fullname="Microsoft.AspNetCore.Components.Web.RendererRegistryEventDispatcher*" />
+        <type fullname="Microsoft.AspNetCore.Components.*EventArgs" />
+
+        <!-- JS-invokable method -->
+        <type fullname="Microsoft.AspNetCore.Components.Web.RendererRegistryEventDispatcher" />
+    </assembly>
+</linker>

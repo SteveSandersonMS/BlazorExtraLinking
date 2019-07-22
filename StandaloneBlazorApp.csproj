@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <RazorLangVersion>3.0</RazorLangVersion>
+    <AdditionalMonoLinkerOptions>$(AdditionalMonoLinkerOptions) --exclude-feature etw --exclude-feature remoting</AdditionalMonoLinkerOptions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview8.19372.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.0.0-preview8.19372.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.HttpClient" Version="3.0.0-preview8.19372.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.DevServer" Version="3.0.0-preview8.19372.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <BlazorLinkerDescriptor Include="Linker.xml" />
+  </ItemGroup>
+
+  <!-- The purpose of this is to stop treating all the referenced assemblies as roots, and instead
+       just provide hints about their locations on disk. This is so the linker will actually link them. -->
+  <Target Name="ChangeLinkerInputs" BeforeTargets="_GenerateLinkerDescriptor">
+    <ItemGroup>
+      <!-- Make -reference items for each of the referenced assemblies -->
+      <_BlazorFolderLookupPaths Include="@(_BlazorDependencyInput->'-reference &quot;%(Identity)&quot;')" />
+
+      <!-- Don't include the framework dependencies in the linker inputs, since we now have -reference items for them -->
+      <_BlazorDependencyInput Remove="@(_BlazorDependencyInput)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
